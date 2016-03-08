@@ -1,0 +1,11 @@
+# Source $HOME/.bashrc, if it exists and this shell is bash(1).
+if [ -n "$BASH_VERSION" ]; then
+    if [ -f "$HOME/.bashrc" ]; then
+	. "$HOME/.bashrc"
+    fi
+fi
+
+# Include $HOME/bin in the path, if it exists.
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi

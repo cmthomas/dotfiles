@@ -1,0 +1,123 @@
+zstyle ':completion:*' auto-description 'specify: %d'
+zstyle ':completion:*' completer _expand _complete _ignored _approximate
+zstyle ':completion:*' format 'Completing %d'
+zstyle ':completion:*' ignore-parents parent pwd
+zstyle ':completion:*' insert-unambiguous true
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
+zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}'
+zstyle ':completion:*' max-errors 2
+zstyle ':completion:*' menu select=long
+zstyle ':completion:*' original true
+zstyle ':completion:*' preserve-prefix '//[^/]##/'
+zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
+zstyle ':completion:*' squeeze-slashes true
+zstyle ':completion:*' use-compctl false
+zstyle ':completion:*' verbose true
+zstyle :compinstall filename '$HOME/.zshrc'
+
+zstyle ':vcs_info:svn*' formats "%F{magenta}[%f%s %F{green}r%i%F{magenta}]%f"
+zstyle ':vcs_info:git*' formats "%F{magenta}[%f%s %F{green}%b%F{magenta}]%f"
+zstyle ':vcs_info:hg*' formats "%F{magenta}[%f%s %F{green}%b%F{magenta}]%f"
+
+# Load completers and the VCS status plugin.
+autoload -Uz compinit vcs_info
+compinit
+
+autoload -U colors
+colors
+
+# Use Emacs-style key bindings (for Ctrl-A and Ctrl-E, mostly).
+bindkey -e
+
+# History: keep 5,500 lines in memory, and save 5,000 lines to disk. This
+# provides a buffer to allow for expiring duplicates before losing actual
+# unique events.
+HISTFILE=~/.histfile
+HISTSIZE=5500
+SAVEHIST=5000
+
+setopt appendhistory
+setopt autocd
+setopt nohup
+setopt nocheckjobs
+setopt histignoredups
+setopt histignorespace
+setopt prompt_subst
+
+precmd() {
+	[[ -t 1 ]] || return
+	case $TERM in
+		xterm*|rxvt*|screen*)
+			print -Pn "\e]2;%n@%m: %~\a"
+			;;
+	esac
+
+	vcs_info
+	if [[ -n ${vcs_info_msg_0_} ]]; then
+		RPS1="${vcs_info_msg_0_}"
+	else
+		unset RPS1
+	fi
+}
+
+case $TERM in
+	xterm*|rxvt*|linux*|screen*)
+		PS1='%F{red}%n@%m%f %B%F{blue}%~%f%b %# '
+		#PS1='%B%F{grey}%n@%m%f%b %B%F{blue}%~%f%b${vcs_info_msg_0_} %# '
+		;;
+	*)
+		PS1="[%n@%m %~]%# "
+		;;
+esac
+
+if [[ $OSTYPE == linux* ]]; then
+	alias ls="ls --color=auto"
+elif [[ $OSTYPE == freebsd* ]]; then
+	alias ls="ls -G"
+fi
+alias grep="grep --color=auto"
+EDITOR=vim
+LESS="-IR"
+PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/usr/local/sbin
+export EDITOR LESS PATH
+
+# Hack to work around terminal emulators that don't actually respect the
+# configured $TERM setting (i.e., GNOME/XFCE terminals on at least some
+# versions of Debian).
+if [[ $TERM == "xterm" ]]; then TERM="xterm-256color"; export TERM; fi
+
+# Newer versions of MPlayer will attempt to decode the embedded cover art
+# in some music files as a "video". In some versions, this results in
+# broken seeking for such files (since it tries to seek through a static
+# image, which fails). Other versions have fixed the seeking bug but will
+# spam stdout with "too many audio packets in the buffer" warnings.
+#
+# To get around this, automatically insert the "-novideo" argument when
+# we are playing an audio file. Note: this assumes that the filename is
+# the last argument.
+mplayer()
+{
+	local FILENAME=${@[-1]}
+	local EXTENSION=${FILENAME##*.}
+	if [[ $EXTENSION == "m4a" ]]; then
+		command mplayer -novideo $*
+	elif [[ $EXTENSION == "mp3" ]]; then
+		command mplayer -novideo $*
+	else
+		command mplayer $*
+	fi
+}
+
+epochiso() {
+	local TS=$1
+	shift
+	date -d "@$TS" "+%Y-%m-%d %H:%M:%S %Z" "$@"
+}
+
+isoepoch() {
+	local TS=$1
+	shift
+	date -d "$TS" +%s "$@"
+}
+

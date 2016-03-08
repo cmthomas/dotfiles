@@ -1,0 +1,9 @@
+[user]
+	name = Christopher Thomas
+	email = cmthomas@cmthomas.us
+[core]
+	safecrlf = true
+	autocrlf = input
+	pager = "less -FX"
+[color]
+	ui = auto

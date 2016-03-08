@@ -1,0 +1,84 @@
+"----------------------------------------------------------------------------
+" Standard settings
+"----------------------------------------------------------------------------
+
+set nocompatible                       " More stuff
+
+set hlsearch                           " Highlight search
+set incsearch                          " Incremental search
+set ignorecase                         " Ignore case when searching
+set smartcase                          " But be smart about it
+
+set fileencodings=utf-8                " Default to using UTF-8
+
+set laststatus=2                       " Always show status line
+set statusline=[%n]\ %<%f%m%r\ %w\ %y\ \ <%{&fileformat}>%=\ [%o]\ %l,%c%V\/%L\ \ %P
+                                       " Better status line
+
+set scrolloff=3                        " Scroll when 3 lines from the edge
+set sidescrolloff=5                    " Scroll when 5 chars from the edge
+set wrap                               " Wrap text
+set linebreak                          " Soft wrap text
+set textwidth=0                        " Allow line wrap to work better
+
+set nojoinspaces                       " Single spaces after sentences
+
+set showmode                           " Always show the mode
+set nofoldenable
+
+set novisualbell                       " Shut the bell up
+set errorbells                         " Get the error noticed
+
+set wildmenu                           " Enable the wild menu
+set wildmode=list:longest,full         " Better completion
+set wildignore =.svn,CVS,.git          " Ignore VCS files
+set wildignore+=*.o,*.a,*.so           " Ignore compiled binaries
+set wildignore+=*.jpg,*.png,*.gif      " Ignore images
+set wildignore+=*.pdf                  " Ignore PDF files
+set wildignore+=*.pyc,*.pyo            " Ignore compiled Python files
+set wildignore+=*.fam                  " Ignore compiled Falcon files
+
+set whichwrap=h,l,~,[,]                " Wrap with more keys
+set backspace=2                        " Allow backspacing over a line
+
+set mousehide                          " Hide mouse when typing
+
+set matchpairs+=<:>                    " Match angle brackets
+
+set grepprg=grep\ -nH\ $*              " Grep should show the line and file number
+
+set t_Co=256
+
+let g:VIMFILESDIR="~/.vim/"
+set runtimepath+="~/.vim/"
+
+
+syntax on
+colorscheme inkpot2
+
+" ---------------------------------------------------------------------------
+"  Key bindings
+" ---------------------------------------------------------------------------
+
+" Rebind up and down to be smarter
+nmap j gj
+nmap k gk
+map <Up> g<Up>
+map <Down> g<Down>
+
+" Spacebar, Insert, and Delete are more useful this way
+noremap <Space> <PageDown>
+noremap <Ins> 2<C-Y>
+noremap <Del> 2<C-E>
+
+" Reparse file
+nmap <F5> :syntax sync fromstart<CR>
+
+" ---------------------------------------------------------------------------
+"  Filetype handling
+" ---------------------------------------------------------------------------
+
+" Turn on filetype detection
+filetype on
+filetype plugin on
+filetype indent on
