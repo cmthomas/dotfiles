@@ -18,7 +18,7 @@ echo -n "Installing files... "
 
 for item in $FILELIST; do
 	if [ $(basename $item) = "config" ]; then
-		mkdir $HOME/.config
+		mkdir -p $HOME/.config
 		for xdgitem in $item/*; do
 			ln -sf $PWD/$xdgitem $HOME/.config/$(basename $xdgitem)
 		done
@@ -27,7 +27,7 @@ for item in $FILELIST; do
 	fi
 
         if [ $(basename $item) = "bin" ]; then
-		mkdir $HOME/bin
+		mkdir -p $HOME/bin
 		for script in $item/*; do
 			ln -sf $PWD/$script $HOME/bin/$(basename $script)
 		done
