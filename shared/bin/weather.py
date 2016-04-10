@@ -11,6 +11,51 @@ import urllib2
 
 BASEURL = 'http://weather.noaa.gov/pub/data/observations/metar/stations'
 
+# Coefficients of the heat index formula.
+hc1 = -42.379
+hc2 = 2.04901523
+hc3 = 10.14333127
+hc4 = -0.22475541
+hc5 = -0.00683783
+hc6 = -0.05481717
+hc7 = 0.00122874
+hc8 = 0.00085282
+hc9 = -0.00000199
+
+# Coefficients of the wind chill formula.
+wc1 = 13.12
+wc2 = 0.6215
+wc3 = -11.37
+wc4 = 0.3965
+
+
+def heat_index(temp, rh):
+  # The heat index is only defined for temperatures at or above 27 °C and
+  # relative humidity above 40%.
+  if temp < 27 or rh < 40:
+    return temp
+
+  # The NOAA heat index formula requires temperature in degrees Fahrenheit
+  # and relative humidity as a percentage (40%, not 0.4).
+  temp = temp * 1.8 + 32
+  hi = (hc1 + hc2 * temp + hc3 * rh + hc4 * temp * rh +
+      hc5 * math.pow(temp, 2) + hc6 * math.pow(rh, 2) +
+      hc7 * math.pow(temp, 2) * rh + hc8 * temp * math.pow(rh, 2) +
+      hc9 * math.pow(temp, 2) * math.pow(rh, 2))
+  return int(round((hi - 32) / 1.8))
+
+
+def wind_chill(temp, wind):
+  # The wind chill is only defined for temperatures at or below 10 °C and
+  # wind speed above 3 knots.
+  if temp > 10 or wind < 3:
+    return temp
+
+  # The wind chill formula requires the wind speed in km/h.
+  wind = wind * 1.852
+  return int(round(wc1 + wc2 * temp + wc3 * math.pow(wind, 0.16) +
+      wc4 * temp * math.pow(wind, 0.16)))
+
 
 def parse_temperature_rh(metar_text):
   temp_re = re.compile(r'([M]?\d{2})/([M]?\d{2})')
@@ -25,23 +70,60 @@ def parse_temperature_rh(metar_text):
     return temperature, dewpoint, rh
 
 
+def parse_wind(metar_text):
+  wind_re = re.compile(r' (\d{3})(\d{2})(?:G(\d{2}))?(KT|MPS)')
+  result = wind_re.search(metar_text)
+  if result:
+    direction = int(result.group(1))
+    wind_speed = int(result.group(2))
+    gust_speed = int(result.group(3)) if result.group(3) else None
+    unit = result.group(4)
+
+    if unit == 'MPS':
+      wind_speed = int(round(wind_speed * 1.944))
+      if gust_speed:
+        gust_speed = int(round(gust_speed * 1.944))
+
+  return direction, wind_speed, gust_speed
+
+
 def report(station, metar_text, si_units):
   print '%s:' % station,
 
   temperature, dewpoint, rh = parse_temperature_rh(metar_text)
-  if temperature < 10:
+  direction, wind, gusts = parse_wind(metar_text)
+
+  if temperature <= 10:
+    apparent_temperature = wind_chill(temperature, wind)
+  elif temperature >= 27:
+    apparent_temperature = heat_index(temperature, rh)
+  else:
+    apparent_temperature = temperature
+
+  if apparent_temperature < 10:
     color_start = '^fg(#0077ff)'
-  elif temperature > 30:
+  elif apparent_temperature > 30:
     color_start = '^fg(#ff0000)'
   else:
     color_start = ''
   color_stop = '^fg()'
 
-  if si_units:
-    print '%s%.0f °C%s, rh %.0f%%' % (color_start, temperature, color_stop, rh)
+  if not si_units:
+    temperature = temperature * 9 / 5 + 32
+    apparent_temperature = apparent_temperature * 9 / 5 + 32
+    unit = '°F'
   else:
-    print '%s%.0f °F%s, rh %.0f%%' % (color_start, temperature * 9 / 5 + 32,
+    unit = '°C'
+
+  if apparent_temperature == temperature:
+    print '%s%.0f %s%s, rh %.0f%%' % (color_start, temperature, unit, 
                                       color_stop, rh)
+  elif apparent_temperature > temperature:
+    print '%s%.0f %s (app. %.0f %s)%s, rh %.0f%%' % (color_start,
+                                                     temperature, unit,
+                                                     apparent_temperature,
+                                                     unit, color_stop, rh)
+  print metar_text
 
 
 def main(argv):
