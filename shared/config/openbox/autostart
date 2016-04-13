@@ -1,5 +1,8 @@
 #!/bin/sh
 
+. $HOME/bin/location.sh
+STATUSBAR_Y=$(echo "$DISPLAY_Y-20" | bc -l)
+
 # X settings: no bell, repeat rate, keyboard map
 setxkbmap 'us(altgr-intl)'
 xset r rate 400 40
@@ -8,8 +11,8 @@ xset -b
 # Start task bar, status bar, and screensaver
 tint2&
 xscreensaver -no-splash&
-($HOME/bin/i3status.sh | dzen2 -e "onstart=lower" -ta r -xs 1 -fn Terminus -h 20 -y 1060) &
-($HOME/bin/i3status.sh | dzen2 -e "onstart=lower" -ta r -xs 2 -fn Terminus -h 20 -y 1060) &
+($HOME/bin/i3status.sh | dzen2 -e "onstart=lower" -ta r -xs 1 -fn Terminus -h 20 -y $STATUSBAR_Y) &
+($HOME/bin/i3status.sh | dzen2 -e "onstart=lower" -ta r -xs 2 -fn Terminus -h 20 -y $STATUSBAR_Y) &
 
 # Load the background and start the compositor
 feh --no-xinerama --bg-center $HOME/Pictures/xplanet-out.png
