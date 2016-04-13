@@ -4,8 +4,10 @@
 import argparse
 import math
 import os
+import random
 import re
 import sys
+import time
 import urllib2
 
 
@@ -58,7 +60,7 @@ def wind_chill(temp, wind):
 
 
 def parse_temperature_rh(metar_text):
-  temp_re = re.compile(r'([M]?\d{2})/([M]?\d{2})')
+  temp_re = re.compile(r' ([M]?\d{2})/([M]?\d{2}) ')
   if temp_re.search(metar_text):
     temperature = int(temp_re.search(metar_text).group(1).replace('M', '-'))
     dewpoint = int(temp_re.search(metar_text).group(2).replace('M', '-'))
@@ -118,7 +120,7 @@ def report(station, metar_text, si_units):
   if apparent_temperature == temperature:
     print '%s%.0f %s%s, rh %.0f%%' % (color_start, temperature, unit, 
                                       color_stop, rh)
-  elif apparent_temperature > temperature:
+  else:
     print '%s%.0f %s (app. %.0f %s)%s, rh %.0f%%' % (color_start,
                                                      temperature, unit,
                                                      apparent_temperature,
@@ -146,6 +148,11 @@ def main(argv):
       si_units = False
     else:
       si_units = True
+
+  # Sleep for a random period of time 0...10 minutes.
+  # (This makes it less likely that all machines will hit the site at the
+  # same time.)
+  time.sleep(random.randint(0, 600))
 
   try:
     site = urllib2.urlopen(os.path.join(BASEURL, args.ICAO[0] + '.TXT'))
