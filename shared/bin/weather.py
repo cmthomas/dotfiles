@@ -73,10 +73,10 @@ def parse_temperature_rh(metar_text):
 
 
 def parse_wind(metar_text):
-  wind_re = re.compile(r' (\d{3})(\d{2})(?:G(\d{2}))?(KT|MPS)')
+  wind_re = re.compile(r' (\d{3}|VRB)(\d{2})(?:G(\d{2}))?(KT|MPS)')
   result = wind_re.search(metar_text)
   if result:
-    direction = int(result.group(1))
+    direction = result.group(1)
     wind_speed = int(result.group(2))
     gust_speed = int(result.group(3)) if result.group(3) else None
     unit = result.group(4)
@@ -85,8 +85,7 @@ def parse_wind(metar_text):
       wind_speed = int(round(wind_speed * 1.944))
       if gust_speed:
         gust_speed = int(round(gust_speed * 1.944))
-
-  return direction, wind_speed, gust_speed
+    return direction, wind_speed, gust_speed
 
 
 def report(station, metar_text, si_units):
