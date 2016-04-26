@@ -101,6 +101,10 @@ def report(station, metar_text, si_units):
   else:
     apparent_temperature = temperature
 
+  # Ignore the wind chill/heat index if it makes a difference of 2 °C or less.
+  if abs(apparent_temperature - temperature) <= 2:
+    apparent_temperature = temperature
+
   if apparent_temperature < 10:
     color_start = '^fg(#0077ff)'
   elif apparent_temperature > 30:
