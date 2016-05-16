@@ -67,7 +67,6 @@ precmd() {
 case $TERM in
 	xterm*|rxvt*|linux*|screen*)
 		PS1='%F{red}%n@%m%f %B%F{blue}%~%f%b %# '
-		#PS1='%B%F{grey}%n@%m%f%b %B%F{blue}%~%f%b${vcs_info_msg_0_} %# '
 		;;
 	*)
 		PS1="[%n@%m %~]%# "
@@ -85,20 +84,10 @@ LESS="-IR"
 PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/usr/local/sbin
 export EDITOR LESS PATH
 
-# Hack to work around terminal emulators that don't actually respect the
-# configured $TERM setting (i.e., GNOME/XFCE terminals on at least some
-# versions of Debian).
-if [[ $TERM == "xterm" ]]; then TERM="xterm-256color"; export TERM; fi
-
 # Newer versions of MPlayer will attempt to decode the embedded cover art
-# in some music files as a "video". In some versions, this results in
-# broken seeking for such files (since it tries to seek through a static
-# image, which fails). Other versions have fixed the seeking bug but will
-# spam stdout with "too many audio packets in the buffer" warnings.
-#
-# To get around this, automatically insert the "-novideo" argument when
-# we are playing an audio file. Note: this assumes that the filename is
-# the last argument.
+# in some music files as a "video". To stop this, automatically insert the
+# "-novideo" argument when we are playing an audio file. Note: this assumes
+# that the filename is the last argument.
 mplayer()
 {
 	local FILENAME=${@[-1]}
