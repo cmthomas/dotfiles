@@ -29,6 +29,9 @@ colors
 
 # Use Emacs-style key bindings (for Ctrl-A and Ctrl-E, mostly).
 bindkey -e
+bindkey "^[[1;5D" backward-word
+bindkey "^[[1;5C" forward-word
+bindkey "^[[3~" delete-char
 
 # History: keep 5,500 lines in memory, and save 5,000 lines to disk. This
 # provides a buffer to allow for expiring duplicates before losing actual
