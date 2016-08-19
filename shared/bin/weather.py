@@ -11,7 +11,7 @@ import time
 import urllib2
 
 
-BASEURL = 'http://weather.noaa.gov/pub/data/observations/metar/stations'
+BASEURL = 'https://aviationweather.gov/metar/data?ids=%s&format=raw&date=0&hours=0'
 
 # Coefficients of the heat index formula.
 hc1 = -42.379
@@ -131,6 +131,36 @@ def report(station, metar_text, si_units):
   print metar_text
 
 
+def extract_metars(html_text):
+  metars = []
+  data_started = False
+
+  # The HTML document includes a comment '<!-- Data starts here -->' on a
+  # line by itself, then the individual METAR report(s), and then a comment
+  # '<!-- Data ends here -->' on a line by itself. Extract only this portion
+  # of the document.
+  for line in html_text:
+    if data_started and not '<!-- Data ends here -->' in line:
+      # When a METAR report extends over more than one line, or when there
+      # is more than one METAR report in the document, <br /> and <hr />
+      # tags occur at the ends of lines. Remove these.
+      line = re.sub(r'\<br /\>', '', line)
+      line = re.sub(r'\<hr.*/\>', '', line)
+      line = re.sub(r'\n', '', line)
+      if metars and not re.match(r'^[A-Z]{4} ', line):
+        # This line does not start with an ICAO station identifier, so it is
+        # a continuation of the METAR report begun on a previous line.
+        metars[-1] = metars[-1] + ' ' + line
+      else:
+        metars.append(line)
+    if '<!-- Data starts here -->' in line:
+      data_started = True
+    if '<!-- Data ends here -->' in line:
+      break
+
+  return metars
+
+
 def main(argv):
   parser = argparse.ArgumentParser(description='Print the current weather.')
   parser.add_argument('ICAO', nargs='+',
@@ -158,10 +188,11 @@ def main(argv):
   time.sleep(random.randint(0, 600))
 
   try:
-    site = urllib2.urlopen(os.path.join(BASEURL, args.ICAO[0] + '.TXT'))
-    metar_text = site.read()
+    site = urllib2.urlopen(BASEURL % args.ICAO[0])
+    html_text = site.readlines()
     site.close()
-    report(args.ICAO[0], metar_text, si_units)
+    metars = extract_metars(html_text)
+    report(args.ICAO[0], metars[0], si_units)
   except urllib2.HTTPError:
     print args.ICAO[0] + ': not available'
 
